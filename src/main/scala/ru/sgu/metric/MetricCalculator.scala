@@ -1,6 +1,6 @@
 package ru.sgu.metric
 
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
+import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 import ru.sgu.BikeStats
 import ru.sgu.utils.DateTransform._
 
@@ -13,7 +13,7 @@ class MetricCalculator(session: SparkSession) {
 
 		def calcAggregate(currentBikeStats: Dataset[BikeStats]): Dataset[(BigDecimal, BigDecimal, BigDecimal, BigDecimal, BigDecimal)] = {
 				val currentTripDurs: DataFrame = currentBikeStats.map(ds => ds.tripDuration).toDF
-				val columnName = "value"
+				val columnName: String = "value"
 
 				val maxTripDur = currentTripDurs.sort(desc(columnName)).first().getDecimal(0).setScale(2, RoundingMode.DOWN)
 				val minTripDur = currentTripDurs.sort(asc(columnName)).first().getDecimal(0).setScale(2, RoundingMode.DOWN)
@@ -41,7 +41,7 @@ class MetricCalculator(session: SparkSession) {
 						.count()
 						.sort(desc(count))
 						.limit(10)
-    				.toDF()
+						.toDF()
 						.drop(count)
 		}
 }
