@@ -12,7 +12,7 @@ class DataLoader(sqlContext: SQLContext, sc: SparkContext) {
 				sqlContext.read.format("csv")
 						.option("header","true")
 						.option("delimiter", ",")
-						.load("Divvy_Trips_2018_Q1.csv")
+						.load("gs://ssu_practice_451_411/Divvy_Trips_2018_Q1.csv")
 
 						.map((row: Row) => {
 								row match {

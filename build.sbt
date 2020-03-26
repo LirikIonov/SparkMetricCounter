@@ -1,7 +1,7 @@
 name := "SparkMetricCounter"
 
 version := "1.0"
-scalaVersion := "2.12.11"
+scalaVersion := "2.11.12"
 sbtVersion := "1.3.3"
 
 ThisBuild / useCoursier := false
@@ -16,7 +16,7 @@ libraryDependencies += "org.apache.spark" %% "spark-hive" % "2.4.0" % "provided"
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
-libraryDependencies ~= { _.map(_.exclude("org.slf4j", "slf4j-log4j12")) }
+libraryDependencies ~= {_.map(_.exclude("org.slf4j", "slf4j-log4j12"))}
 
 test in assembly := {}
 assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false)

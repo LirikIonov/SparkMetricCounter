@@ -10,6 +10,9 @@
     <logger name="org.apache.spark">
         <level value="error" />
     </logger>
+    <logger name="org.spark_project">
+        <level value="error" />
+    </logger>
     <logger name="org.spark-project">
         <level value="error" />
     </logger>
