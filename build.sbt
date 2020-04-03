@@ -29,9 +29,6 @@ libraryDependencies ~= { _.map(_.exclude("javax.jms", "jms")) }
 libraryDependencies ~= { _.map(_.exclude("com.sun.jdmk", "jmxtools")) }
 libraryDependencies ~= { _.map(_.exclude("com.sun.jmx", "jmxri")) }
 
-//libraryDependencies += "it.unimi.dsi" % "fastutil" % "8.1.0"
-
-
 assemblyShadeRules in assembly := Seq(
 		ShadeRule.rename("com.google.common.**" -> "shade.com.google.common.@1").inAll
 )

@@ -17,10 +17,9 @@ class PubSubDataLoader(implicit sc: StreamingContext, config: SparkMetricConfig)
 		val windowLength: Int = config.windowLength
 		val slidingInterval: Int = config.slidingInterval
 
-		def loadDataAsStream() = {
+		def loadDataAsStream(): DStream[BikeSet] = {
 				logger.info("Loading bike set as stream from Pub/Sub")
-				val messagesStream: DStream[String] = PubsubUtils
-						.createStream(
+				PubsubUtils.createStream(
 								sc,
 								projectID,
 								Option(topic),
@@ -28,11 +27,6 @@ class PubSubDataLoader(implicit sc: StreamingContext, config: SparkMetricConfig)
 								SparkGCPCredentials.builder.build(),
 								StorageLevel.MEMORY_AND_DISK_SER_2)
 						.map(message => new String(message.getData(), StandardCharsets.UTF_8))
-
-				// Debug
-				//messagesStream.foreachRDD(rdd => rdd.collect().foreach(println))
-
-				val x = messagesStream
 						.map((line: String) => {
 								val l = line.indexOf("\"\"")
 								if (l == -1) line.replaceAll("\"", "")
@@ -90,35 +84,5 @@ class PubSubDataLoader(implicit sc: StreamingContext, config: SparkMetricConfig)
 						}
 						.filter(row => row != null)
 						.window(Seconds(windowLength), Seconds(slidingInterval))
-
-				/*x.foreachRDD(rdd => {
-						println("tripId")
-						rdd.map(row => row.tripId).collect().foreach(println)
-						println("===\nstartTime")
-						rdd.map(row => row.startTime).collect().foreach(println)
-						println("===\nendTime")
-						rdd.map(row => row.endTime).collect().foreach(println)
-						println("===\nbikeId")
-						rdd.map(row => row.bikeId).collect().foreach(println)
-						println("===\ntripDuration")
-						rdd.map(row => row.tripDuration).collect().foreach(println)
-						println("===\nfromStationId")
-						rdd.map(row => row.fromStationId).collect().foreach(println)
-						println("===\nfromStationName")
-						rdd.map(row => row.fromStationName).collect().foreach(println)
-						println("===\ntoStationId")
-						rdd.map(row => row.toStationId).collect().foreach(println)
-						println("===\ntoStationName")
-						rdd.map(row => row.toStationName).collect().foreach(println)
-						println("===\nuserType")
-						rdd.map(row => row.userType).collect().foreach(println)
-						println("===\ngenderType")
-						rdd.map(row => row.genderType).collect().foreach(println)
-						println("===\nbirthYear")
-						rdd.map(row => row.birthYear).collect().foreach(println)
-				})*/
-				//println("===\nTOTAL")
-				//x.foreachRDD(rdd => rdd.collect().foreach(println))
-				x
 		}
 }

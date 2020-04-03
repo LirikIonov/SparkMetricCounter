@@ -15,7 +15,7 @@ class MetricCalculator(implicit sparkSession: SparkSession) extends BaseLogger w
 
 		def calcAggregate(bikeSet: DStream[BikeSet]): DataFrame = {
 				var result = sparkSession.emptyDataset[BikeMetrics]
-				bikeSet.foreachRDD(bikeRdd => if (!bikeRdd.isEmpty()) try {
+				bikeSet.foreachRDD(bikeRdd => if (!bikeRdd.isEmpty()) {
 						logger.info("Calculating bike metrics (max, min, avg, mean, median 1, median 2)...")
 						val currentTripDurs: DataFrame = bikeRdd.map(ds => ds.tripDuration).toDF()
 						val maxTripDur = currentTripDurs.sort(desc("value")).first().getDecimal(0).setScale(2, RoundingMode.DOWN)
@@ -38,9 +38,6 @@ class MetricCalculator(implicit sparkSession: SparkSession) extends BaseLogger w
 
 						result = result.union(List(BikeMetrics(maxTripDur, minTripDur, avgTripDur,
 								medianTripDur, medianClientAge)).toDS)
-				}
-				catch {
-					case e: Exception => /*bikeRdd.collect().foreach(println)*/ e.getMessage
 				})
 				result.toDF()
 		}

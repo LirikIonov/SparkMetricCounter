@@ -1,7 +1,6 @@
 package ru.sgu.component
 
-import ru.sgu.loader.{ PubSubDataLoader}
-import ru.sgu.logger.BaseLogger
+import ru.sgu.loader.PubSubDataLoader
 import ru.sgu.metric.MetricCalculator
 
 class BikeSetComponent(loader: PubSubDataLoader, metrics: MetricCalculator) {

@@ -1,7 +1,5 @@
 package ru.sgu.config
 
-import java.time.ZonedDateTime
-
 case class SparkMetricConfig(projectId: String,
 														 checkpointDir: String,
 														 windowLength: Int,
