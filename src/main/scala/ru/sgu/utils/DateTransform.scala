@@ -15,4 +15,8 @@ object DateTransform {
 		def strToDate(date: String): ZonedDateTime = {
 				ZonedDateTime.of(LocalDateTime.parse(date, formatter), zoneId)
 		}
+
+		def getCurrentDateTime(): String = {
+				formatter.format(LocalDateTime.now)
+		}
 }

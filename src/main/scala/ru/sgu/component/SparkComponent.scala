@@ -2,26 +2,45 @@ package ru.sgu.component
 
 import java.beans.Transient
 
-import org.apache.spark.sql.{SQLContext, SparkSession}
-import org.apache.spark.{SparkConf, SparkContext}
-import ru.sgu.loader.DataLoader
-import ru.sgu.writer.DataWriter
+import org.apache.spark.SparkConf
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.streaming.{Seconds, StreamingContext}
+import ru.sgu.SparkLauncher
+import ru.sgu.config.SparkMetricConfig
 
 class SparkComponent {
-		lazy val conf = new SparkConf()
-				.setAppName("SparkMetricCounter")
-				//.setMaster("local[8]")
+		def createContext(config: SparkMetricConfig): StreamingContext = {
+				val sparkConf = new SparkConf()
+						.setAppName(SparkLauncher.getClass.getName)
+						.setIfMissing("spark.master", "local[*]")
 
-		lazy val session: SparkSession = SparkSession.builder()
-				.config(conf)
-				.getOrCreate()
+				@Transient
+				val sparkContext: StreamingContext = new StreamingContext(sparkConf, Seconds(config.slidingInterval))
 
-		@Transient
-		lazy val sparkContext: SparkContext = session.sparkContext
+				@Transient
+				val session: SparkSession = SparkSession.builder()
+						.appName(SparkLauncher.getClass.getName)
+						.config(sparkConf)
+						.getOrCreate()
 
-		@Transient
-		lazy val sqlContext: SQLContext = session.sqlContext
+				if (config.runMode == "cluster") {
+						val checkpointDirectory = config.checkpointDir
+						val yarnTags = sparkConf.get("spark.yarn.tags")
+						val jobId = yarnTags.split(",").filter(_.startsWith("dataproc_job_")).head
+						sparkContext.checkpoint(checkpointDirectory + '/' + jobId)
+				}
+				else if (config.runMode == "local") {
+						sparkContext.checkpoint(config.checkpointDir)
+				}
+				sparkContext
+		}
 
-		lazy val dataLoader: DataLoader = new DataLoader(sqlContext, sparkContext)
-		lazy val dataWriter: DataWriter = new DataWriter()
+		def createSession(implicit config: SparkMetricConfig): SparkSession = {
+				val sparkSession: SparkSession = SparkSession.builder()
+						.appName("spark")
+						.getOrCreate()
+				val bucket = config.bucketName
+				sparkSession.conf.set("temporaryGcsBucket", bucket)
+				sparkSession
+		}
 }
