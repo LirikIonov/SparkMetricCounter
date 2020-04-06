@@ -24,18 +24,17 @@ object StreamDataModifier {
 		val windowLength: Int = config.windowLength
 		val slidingInterval: Int = config.slidingInterval
 
-
 		import ss.implicits._
 
 		def process(x: DStream[String], dw: DataWriter, metrics: MetricCalculator): Unit = {
+				//x.foreachRDD(rdd => rdd.collect.foreach(println))
 				x.map((line: String) => {
 						val l = line.indexOf("\"\"")
 						if (l == -1) line.replaceAll("\"", "")
 						else {
 								val r = line.substring(l + 1).indexOf("\"\"")
-								val sub = line.substring(l, r + l).replaceAll(",", "")
-								val res = line.substring(0, l) + sub + line.substring(r)
-								res.replaceAll("\"", "")
+								val sub = line.substring(l, r + l + 1).replaceAll(",", "")
+								(line.substring(0, l) + sub + line.substring(r + l + 1)).replaceAll("\"", "")
 						}
 				})
 						.map((line: String) => {
@@ -50,7 +49,7 @@ object StreamDataModifier {
 								bikeId, tripDuration, fromStationId,
 								fromStationName, toStationId, toStationName,
 								userType, "NOVAL", "NOVAL") => {
-										println(s"1: $tripId $startTime $endTime $bikeId $tripDuration $fromStationId $fromStationName $toStationId $toStationName $userType")
+										//println(s"1: $tripId $startTime $endTime $bikeId $tripDuration $fromStationId $fromStationName $toStationId $toStationName $userType")
 										BikeSet(BigDecimal(tripId), startTime, endTime,
 												BigDecimal(bikeId), BigDecimal(tripDuration), BigDecimal(fromStationId),
 												fromStationName, BigDecimal(toStationId), toStationName,
@@ -60,7 +59,7 @@ object StreamDataModifier {
 								bikeId, tripDuration, fromStationId,
 								fromStationName, toStationId, toStationName,
 								userType, genderType, "NOVAL") => {
-										println(s"2: $tripId $startTime $endTime $bikeId $tripDuration $fromStationId $fromStationName $toStationId $toStationName $userType $genderType")
+										//println(s"2: $tripId $startTime $endTime $bikeId $tripDuration $fromStationId $fromStationName $toStationId $toStationName $userType $genderType")
 										BikeSet(BigDecimal(tripId), startTime, endTime,
 												BigDecimal(bikeId), BigDecimal(tripDuration), BigDecimal(fromStationId),
 												fromStationName, BigDecimal(toStationId), toStationName,
@@ -70,7 +69,7 @@ object StreamDataModifier {
 								bikeId, tripDuration, fromStationId,
 								fromStationName, toStationId, toStationName,
 								userType, "NOVAL", birthYear) => {
-										println(s"3: $tripId $startTime $endTime $bikeId $tripDuration $fromStationId $fromStationName $toStationId $toStationName $userType $birthYear")
+										//println(s"3: $tripId $startTime $endTime $bikeId $tripDuration $fromStationId $fromStationName $toStationId $toStationName $userType $birthYear")
 										BikeSet(BigDecimal(tripId), startTime, endTime,
 												BigDecimal(bikeId), BigDecimal(tripDuration), BigDecimal(fromStationId),
 												fromStationName, BigDecimal(toStationId), toStationName,
@@ -80,13 +79,13 @@ object StreamDataModifier {
 								bikeId, tripDuration, fromStationId,
 								fromStationName, toStationId, toStationName,
 								userType, genderType, birthYear) =>
-										println(s"4: $tripId $startTime $endTime $bikeId $tripDuration $fromStationId $fromStationName $toStationId $toStationName $userType $genderType $birthYear")
+										//println(s"4: $tripId $startTime $endTime $bikeId $tripDuration $fromStationId $fromStationName $toStationId $toStationName $userType $genderType $birthYear")
 										BikeSet(BigDecimal(tripId), startTime, endTime,
 												BigDecimal(bikeId), BigDecimal(tripDuration), BigDecimal(fromStationId),
 												fromStationName, BigDecimal(toStationId), toStationName,
 												userType, genderType, birthYear)
 								case line => {
-										println(s"5: $line")
+										//println(s"5: $line")
 										BikeSet(null, null, null, null, null, null, null, null, null, null, null, null)
 								}
 						}

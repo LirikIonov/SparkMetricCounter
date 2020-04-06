@@ -61,6 +61,6 @@ class MetricCalculator(dw: DataWriter)(implicit ss: SparkSession) extends Serial
 		}
 
 		private def getMedian(bikeSet: Dataset[BigDecimal]): BigDecimal = {
-				BigDecimal.valueOf(bikeSet.stat.approxQuantile("value", Array(0.5), 0)(0))
+				if (bikeSet.count() == 0) 0 else BigDecimal.valueOf(bikeSet.stat.approxQuantile("value", Array(0.5), 0)(0))
 		}
 }

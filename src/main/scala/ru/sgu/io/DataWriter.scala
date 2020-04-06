@@ -14,8 +14,6 @@ class DataWriter(implicit config: SparkMetricConfig) extends Serializable {
 				bikeRDD.write.parquet(outDirectory)
 		}
 
-		def setNullableStateOfColumn(frame: DataFrame) = ???
-
 		def writeToBigQuery(bikeFrame: DataFrame, tableName: String): Unit = {
 				println(s"Saving into $tableName (BigQuery)")
 				//bikeFrame.show(10)
