@@ -1,12 +1,11 @@
 package ru.sgu.controller
 
-import java.net.URL
+import java.beans.Transient
 
-import com.typesafe.config.Config
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.StreamingContext
-import ru.sgu.component.SparkComponent
-import ru.sgu.config.{SparkMetricConfig, SparkMetricConfigBuilder, TypesafeConfigMerger}
+import ru.sgu.io.PubSubDataLoader
+import ru.sgu.spark.{SparkComponent, SparkMetricConfig, SparkMetricConfigBuilder}
 
 class SparkController {
 		implicit val sparkComponent: SparkComponent = new SparkComponent()
@@ -18,10 +17,10 @@ class SparkController {
 		}
 
 		def start(args: Array[String]): Unit = {
-				val confUrls: List[URL] = if (args.length > 0) args.map(u => new URL(u)).toList else List()
-				val mergedConfig: Config = TypesafeConfigMerger.loadByPaths(confUrls)
-				implicit val config: SparkMetricConfig = SparkMetricConfigBuilder.createUsingConfig(mergedConfig)
+				@Transient
+				implicit val config: SparkMetricConfig = SparkMetricConfigBuilder.create()
 
+				@Transient
 				implicit val sc = StreamingContext.getOrCreate(config.checkpointDir,
 						() => sparkComponent.createContext(config))
 				sc.sparkContext.hadoopConfiguration
@@ -29,9 +28,10 @@ class SparkController {
 				sc.sparkContext.hadoopConfiguration
 						.set("fs.AbstractFileSystem.gs.impl", classOf[com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS].getName)
 
+				@Transient
 				implicit val session: SparkSession = sparkComponent.createSession
 
-				new DataController().processData()
+				new PubSubDataLoader().startProcessingData()
 				keepRunning(sc, config.totalRunningTime)
 		}
 }

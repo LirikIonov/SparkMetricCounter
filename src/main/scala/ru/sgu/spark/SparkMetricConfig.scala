@@ -1,4 +1,4 @@
-package ru.sgu.config
+package ru.sgu.spark
 
 case class SparkMetricConfig(projectId: String,
 														 checkpointDir: String,

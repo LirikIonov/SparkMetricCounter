@@ -1,4 +1,4 @@
-package ru.sgu.component
+package ru.sgu.spark
 
 import java.beans.Transient
 
@@ -6,7 +6,6 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import ru.sgu.SparkLauncher
-import ru.sgu.config.SparkMetricConfig
 
 class SparkComponent {
 		def createContext(config: SparkMetricConfig): StreamingContext = {
@@ -36,6 +35,7 @@ class SparkComponent {
 		}
 
 		def createSession(implicit config: SparkMetricConfig): SparkSession = {
+				@Transient
 				val sparkSession: SparkSession = SparkSession.builder()
 						.appName("spark")
 						.getOrCreate()

@@ -1,10 +1,10 @@
-package ru.sgu.logger
+package ru.sgu.utils
 
 import com.typesafe.scalalogging.LazyLogging
 
-class BaseLogger extends LazyLogging {
+class BlockLogger extends LazyLogging {
 		def log[R](block: => R, methodName: String): R = {
-				logger.info(s"$methodName")
+				println(s"$methodName")
 				block
 		}
 }

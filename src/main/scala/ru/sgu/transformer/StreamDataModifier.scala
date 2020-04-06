@@ -1,42 +1,43 @@
-package ru.sgu.loader
+package ru.sgu.transformer
 
-import java.nio.charset.StandardCharsets
+import java.beans.Transient
 
-import org.apache.spark.storage.StorageLevel
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.streaming.Seconds
 import org.apache.spark.streaming.dstream.DStream
-import org.apache.spark.streaming.pubsub.{PubsubUtils, SparkGCPCredentials}
-import org.apache.spark.streaming.{Seconds, StreamingContext}
 import ru.sgu.BikeSet
-import ru.sgu.config.SparkMetricConfig
-import ru.sgu.logger.BaseLogger
+import ru.sgu.io.DataWriter
+import ru.sgu.spark.{SparkMetricConfig, SparkMetricConfigBuilder}
 
-class PubSubDataLoader(implicit sc: StreamingContext, config: SparkMetricConfig) extends BaseLogger {
+object StreamDataModifier {
+		@Transient
+		implicit val ss: SparkSession = SparkSession.builder()
+				.appName("spark")
+				.getOrCreate()
+		@Transient
+		implicit val config: SparkMetricConfig = SparkMetricConfigBuilder.create
+		val bucket = config.bucketName
+		ss.conf.set("temporaryGcsBucket", bucket)
 		val projectID: String = config.projectId
 		val topic: String = config.topicName
 		val subcription: String = config.subscriptionName
 		val windowLength: Int = config.windowLength
 		val slidingInterval: Int = config.slidingInterval
 
-		def loadDataAsStream(): DStream[BikeSet] = {
-				logger.info("Loading bike set as stream from Pub/Sub")
-				PubsubUtils.createStream(
-								sc,
-								projectID,
-								Option(topic),
-								subcription,
-								SparkGCPCredentials.builder.build(),
-								StorageLevel.MEMORY_AND_DISK_SER_2)
-						.map(message => new String(message.getData(), StandardCharsets.UTF_8))
-						.map((line: String) => {
-								val l = line.indexOf("\"\"")
-								if (l == -1) line.replaceAll("\"", "")
-								else {
-										val r = line.substring(l).indexOf("\"\"")
-										val sub = line.substring(l, r).replaceAll(",", "")
-										val res = line.substring(0, l) + sub + line.substring(r)
-										res.replaceAll("\"", "")
-								}
-						})
+
+		import ss.implicits._
+
+		def process(x: DStream[String], dw: DataWriter, metrics: MetricCalculator): Unit = {
+				x.map((line: String) => {
+						val l = line.indexOf("\"\"")
+						if (l == -1) line.replaceAll("\"", "")
+						else {
+								val r = line.substring(l + 1).indexOf("\"\"")
+								val sub = line.substring(l, r + l).replaceAll(",", "")
+								val res = line.substring(0, l) + sub + line.substring(r)
+								res.replaceAll("\"", "")
+						}
+				})
 						.map((line: String) => {
 								var res = line + ""
 								if (line.lastIndexOf(",") == line.length - 1) res = res + "NOVAL"
@@ -49,6 +50,7 @@ class PubSubDataLoader(implicit sc: StreamingContext, config: SparkMetricConfig)
 								bikeId, tripDuration, fromStationId,
 								fromStationName, toStationId, toStationName,
 								userType, "NOVAL", "NOVAL") => {
+										println(s"1: $tripId $startTime $endTime $bikeId $tripDuration $fromStationId $fromStationName $toStationId $toStationName $userType")
 										BikeSet(BigDecimal(tripId), startTime, endTime,
 												BigDecimal(bikeId), BigDecimal(tripDuration), BigDecimal(fromStationId),
 												fromStationName, BigDecimal(toStationId), toStationName,
@@ -58,6 +60,7 @@ class PubSubDataLoader(implicit sc: StreamingContext, config: SparkMetricConfig)
 								bikeId, tripDuration, fromStationId,
 								fromStationName, toStationId, toStationName,
 								userType, genderType, "NOVAL") => {
+										println(s"2: $tripId $startTime $endTime $bikeId $tripDuration $fromStationId $fromStationName $toStationId $toStationName $userType $genderType")
 										BikeSet(BigDecimal(tripId), startTime, endTime,
 												BigDecimal(bikeId), BigDecimal(tripDuration), BigDecimal(fromStationId),
 												fromStationName, BigDecimal(toStationId), toStationName,
@@ -67,6 +70,7 @@ class PubSubDataLoader(implicit sc: StreamingContext, config: SparkMetricConfig)
 								bikeId, tripDuration, fromStationId,
 								fromStationName, toStationId, toStationName,
 								userType, "NOVAL", birthYear) => {
+										println(s"3: $tripId $startTime $endTime $bikeId $tripDuration $fromStationId $fromStationName $toStationId $toStationName $userType $birthYear")
 										BikeSet(BigDecimal(tripId), startTime, endTime,
 												BigDecimal(bikeId), BigDecimal(tripDuration), BigDecimal(fromStationId),
 												fromStationName, BigDecimal(toStationId), toStationName,
@@ -76,13 +80,24 @@ class PubSubDataLoader(implicit sc: StreamingContext, config: SparkMetricConfig)
 								bikeId, tripDuration, fromStationId,
 								fromStationName, toStationId, toStationName,
 								userType, genderType, birthYear) =>
+										println(s"4: $tripId $startTime $endTime $bikeId $tripDuration $fromStationId $fromStationName $toStationId $toStationName $userType $genderType $birthYear")
 										BikeSet(BigDecimal(tripId), startTime, endTime,
 												BigDecimal(bikeId), BigDecimal(tripDuration), BigDecimal(fromStationId),
 												fromStationName, BigDecimal(toStationId), toStationName,
 												userType, genderType, birthYear)
-								case _ => null
+								case line => {
+										println(s"5: $line")
+										BikeSet(null, null, null, null, null, null, null, null, null, null, null, null)
+								}
 						}
 						.filter(row => row != null)
 						.window(Seconds(windowLength), Seconds(slidingInterval))
+
+						.foreachRDD(rdd => if (!rdd.isEmpty()) {
+								dw.writeToStorage(rdd.toDF())
+								metrics.calcAggregate(rdd)
+								metrics.calcTopRentAddresses(rdd, "fromStationName", "from", "top_rent_from_addresses")
+								metrics.calcTopRentAddresses(rdd, "toStationName", "to", "top_rent_to_addresses")
+						})
 		}
 }
