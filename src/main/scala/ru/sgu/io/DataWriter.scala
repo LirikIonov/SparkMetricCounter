@@ -18,7 +18,7 @@ class DataWriter(implicit config: SparkMetricConfig) extends Serializable {
 
 		def writeToBigQuery(bikeFrame: DataFrame, tableName: String): Unit = {
 				println(s"Saving into $tableName (BigQuery)")
-				bikeFrame.show(10)
+				//bikeFrame.show(10)
 				val projectId = config.projectId
 				val tablePrefix = config.tablePrefix
 				setNullableStateOfColumn(bikeFrame, nullable = true)
