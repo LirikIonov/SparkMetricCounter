@@ -14,10 +14,10 @@ class SparkComponent {
 						.setIfMissing("spark.master", "local[*]")
 
 				@Transient
-				val sparkContext: StreamingContext = new StreamingContext(sparkConf, Seconds(config.slidingInterval))
+				val sparkContext = new StreamingContext(sparkConf, Seconds(config.slidingInterval))
 
 				@Transient
-				val session: SparkSession = SparkSession.builder()
+				val session = SparkSession.builder()
 						.appName(SparkLauncher.getClass.getName)
 						.config(sparkConf)
 						.getOrCreate()
@@ -36,7 +36,7 @@ class SparkComponent {
 
 		def createSession(implicit config: SparkMetricConfig): SparkSession = {
 				@Transient
-				val sparkSession: SparkSession = SparkSession.builder()
+				val sparkSession = SparkSession.builder()
 						.appName("spark")
 						.getOrCreate()
 				val bucket = config.bucketName

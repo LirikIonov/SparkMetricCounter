@@ -22,12 +22,17 @@ libraryDependencies += "com.google.cloud.bigdataoss" % "gcs-connector" % "hadoop
 libraryDependencies += "com.google.cloud.bigdataoss" % "bigquery-connector" % "hadoop3-0.13.17" % "provided"
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
-libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
+libraryDependencies += "org.apache.logging.log4j" %% "log4j-api-scala" % "11.0"
+libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.11.0"
+libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.11.0" % Runtime
+
 libraryDependencies += "com.typesafe" % "config" % "1.4.0"
 libraryDependencies += "com.iheart" %% "ficus" % "1.4.3"
+
 libraryDependencies ~= { _.map(_.exclude("javax.jms", "jms")) }
 libraryDependencies ~= { _.map(_.exclude("com.sun.jdmk", "jmxtools")) }
 libraryDependencies ~= { _.map(_.exclude("com.sun.jmx", "jmxri")) }
+libraryDependencies ~= { _.map(_.exclude("org.slf4j", "slf4j-log4j12")) }
 
 assemblyShadeRules in assembly := Seq(
 		ShadeRule.rename("com.google.common.**" -> "shade.com.google.common.@1").inAll

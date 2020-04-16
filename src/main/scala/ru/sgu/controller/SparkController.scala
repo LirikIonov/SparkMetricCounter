@@ -8,7 +8,7 @@ import ru.sgu.io.PubSubDataLoader
 import ru.sgu.spark.{SparkComponent, SparkMetricConfig, SparkMetricConfigBuilder}
 
 class SparkController {
-		implicit val sparkComponent: SparkComponent = new SparkComponent()
+		implicit val sparkComponent = new SparkComponent()
 
 		def keepRunning(sc: StreamingContext, totalTime: Int): Unit = {
 				sc.start()
@@ -18,7 +18,7 @@ class SparkController {
 
 		def start(args: Array[String]): Unit = {
 				@Transient
-				implicit val config: SparkMetricConfig = SparkMetricConfigBuilder.create()
+				implicit val config = SparkMetricConfigBuilder.create()
 
 				@Transient
 				implicit val sc = StreamingContext.getOrCreate(config.checkpointDir,
@@ -29,7 +29,7 @@ class SparkController {
 						.set("fs.AbstractFileSystem.gs.impl", classOf[com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS].getName)
 
 				@Transient
-				implicit val session: SparkSession = sparkComponent.createSession
+				implicit val session = sparkComponent.createSession
 
 				new PubSubDataLoader().startProcessingData()
 				keepRunning(sc, config.totalRunningTime)

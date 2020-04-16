@@ -1,18 +1,18 @@
 package ru.sgu
 
-import com.typesafe.scalalogging.LazyLogging
+import org.apache.logging.log4j.scala.Logging
 import ru.sgu.controller.SparkController
 
-object SparkLauncher extends LazyLogging {
+object SparkLauncher extends Logging {
 		def main(args: Array[String]) {
 				try {
-						println("Started Spark Controller")
+						logger.info("Started Spark Controller")
 						new SparkController().start(args)
 				}
 				catch {
 						case e: Exception =>
-								println("Spark Controller throwed an exception: ", e.getMessage)
-								println("System.exit(1)")
+								logger.info(s"Spark Controller throwed an exception: ${e.getMessage}")
+								logger.info("System.exit(1)")
 								sys.exit(1)
 				}
 		}
